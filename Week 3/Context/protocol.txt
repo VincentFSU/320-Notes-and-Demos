@@ -1,0 +1,56 @@
+jsChat Protocol v1.0
+====================
+
+ALL PACKETS END WITH A \n 
+ALL PACKET PARTS ARE SPLIT WITH A \t
+
+Features of app:
+----------------
+send message
+set username
+send private messages
+list of online users
+mute (block) other users
+set your text color
+
+
+Packets from Client
+===================
+
+CHAT\t(message)\n
+    When Client wants to send a normal message to the chat.
+
+DMSG\t(recipient)\t(message)\n
+    A direct message sent to a single recipient.
+
+NAME\t(name)\n
+    When the user submits a "name change request".
+
+LIST\n
+    A request for an updated list of users.
+
+
+Packets from Server
+===================
+
+CHAT\t(username)\t(message)\n
+    When the server receives a CHAT packet from a client, it forwards it to everyone in the server.
+
+ANNC\t(message)\n
+    An announcement from the server.
+
+NOKY\n
+    When the server receives a name packet from a client and the name is accepted by the server,
+    the server sends this packet type out to the client.
+    
+NBAD\t(message)\n
+    When the server receives a name packet from a client and the name is not accepted by the server,
+    the server sends this packet type out to the client.
+
+DMSG\t(sender)\t(message)\n
+    When the server receives a direct message packet from a client, it sends this packet to the
+    recipient.
+
+LIST\t(user)\t(user) ... \n
+    This packet contains a list of all users on the server. It should be sent out when a user
+    joins, disconnects, or changes their name.
