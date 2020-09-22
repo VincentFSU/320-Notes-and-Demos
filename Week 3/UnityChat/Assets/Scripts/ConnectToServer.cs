@@ -100,21 +100,29 @@ public class ConnectToServer : MonoBehaviour
                 AddMessageToChatDisplay($"{user}: {message}");
                 break;
             case "LIST":
-                string users = "Users on server:\n";
+                string users = $"Users on server ({parts.Length - 1}):\n";
                 for (int i = 1; i < parts.Length; i++)
                 {
                     users += parts[i];
                     users += "\n";
-
-                    //if (i > 1)
-                    //{
-                    //    users += "\n";
-                    //    users += parts[i];
-                    //    users += "\n";
-                    //}
                 }
 
                 AddMessageToUsersDisplay(users);
+                break;
+            case "DMSG":
+                user = parts[1];
+                message = parts[2];
+
+                AddMessageToChatDisplay($"(whisper){user}: {message}");
+                break;
+            case "NBAD":
+                AddMessageToChatDisplay($"Username not accepted: {parts[1]}");
+                break;
+            case "NOKY":
+                AddMessageToChatDisplay("Server: Username changed.");
+                break;
+            case "NUSR":
+                AddMessageToChatDisplay($"Could not complete request: {parts[1]}");
                 break;
             default:
                 break;

@@ -47,6 +47,10 @@ NBAD\t(message)\n
     When the server receives a name packet from a client and the name is not accepted by the server,
     the server sends this packet type out to the client.
 
+NUSR\t(messsage)\n
+    When the server receives a direct message packet form a client and the name does not match any user,
+    the server sends this packet type out to the client.
+
 DMSG\t(sender)\t(message)\n
     When the server receives a direct message packet from a client, it sends this packet to the
     recipient.

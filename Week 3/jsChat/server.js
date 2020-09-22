@@ -16,7 +16,10 @@ const Packet = {
 	},
 	buildNameBad:function(error){
 		return this.buildFromParts(["NBAD",error]);
-	},
+    },
+    buildNoUser:function(error){
+        return this.buildFromParts(["NUSR", error]);
+    },
 	buildDM:function(usernameFrom,message){
 		return this.buildFromParts(["DMSG",usernameFrom,message]);
 	},
@@ -85,6 +88,14 @@ class Client {
 
 				break;
 			case "DMSG":
+                this.server.clients.forEach(c=>{
+                    if(c.username == part[1]){
+                        c.sendPacket(Packet.buildDM(this.username, parts[2]));
+                    }
+                    else{
+                        this.sendPacket(Packet.buildNoUser("User does not exist"));
+                    }                    
+                });
 				break;
 			case "NAME":
 
@@ -126,14 +137,11 @@ class Server {
 
 		const client = new Client(socketToClient, this);
         this.clients.push(client);
-		//TODO: broadcast a LIST packet to everyone
-        //this.broadcast(Packet.buildList(this.clients));
 	}
 	onClientDisconnect(client){
 		// remove this client object from the server list:
-        this.clients.splice(this.clients.indexOf(client), 1);
-		//TODO: broadcast a LIST packet to everyone
-        //client.sendPacket(Packet.buildList(this.clients));
+        this.clients.splice(this.clients.indexOf(client), 1);		
+        this.broadcast(Packet.buildList(this.clients));
 	}
 	onError(errMsg){
 		console.log("ERROR: " + errMsg);
