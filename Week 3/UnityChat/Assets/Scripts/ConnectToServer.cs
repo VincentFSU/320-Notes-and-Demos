@@ -7,6 +7,7 @@ using UnityEngine;
 using TMPro;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 public class ConnectToServer : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class ConnectToServer : MonoBehaviour
     public ushort port = 320; // 0 - 65535
 
     public TextMeshProUGUI chatDisplay;
+    public TextMeshProUGUI usersDisplay;
     public TMP_InputField inputDisplay;
 
 
@@ -44,6 +46,8 @@ public class ConnectToServer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        host = PlayerPrefs.GetString("UnityChatHost");
+        ushort.TryParse(PlayerPrefs.GetString("UnityChatPort"), out port);
         DoConnect();
     }
 
@@ -52,6 +56,7 @@ public class ConnectToServer : MonoBehaviour
         try
         {
             await socketToServer.ConnectAsync(host, port);
+            SendPacketToServer(Packet.BuildName(PlayerPrefs.GetString("UnityChatUsername")));
             AddMessageToChatDisplay("Successfully connected to server...");
         }
         catch (Exception e)
@@ -95,18 +100,21 @@ public class ConnectToServer : MonoBehaviour
                 AddMessageToChatDisplay($"{user}: {message}");
                 break;
             case "LIST":
-                string users = "Users on server: ";
+                string users = "Users on server:\n";
                 for (int i = 1; i < parts.Length; i++)
                 {
                     users += parts[i];
-                    if (i > 1)
-                    {
-                        users += ", ";
-                        users += parts[i];
-                    }
+                    users += "\n";
+
+                    //if (i > 1)
+                    //{
+                    //    users += "\n";
+                    //    users += parts[i];
+                    //    users += "\n";
+                    //}
                 }
 
-                AddMessageToChatDisplay(users);
+                AddMessageToUsersDisplay(users);
                 break;
             default:
                 break;
@@ -117,6 +125,11 @@ public class ConnectToServer : MonoBehaviour
     public void AddMessageToChatDisplay(string txt)
     {
         chatDisplay.text += $"{txt}\n";
+    }
+
+    public void AddMessageToUsersDisplay(string txt)
+    {
+        usersDisplay.text = $"{txt}\n";
     }
 
     public void UserDoneEditingMessage(string txt)
@@ -143,12 +156,12 @@ public class ConnectToServer : MonoBehaviour
         inputDisplay.ActivateInputField();
     }
 
-    public void SendPacketToServer(string packet)
+    public async void SendPacketToServer(string packet)
     {
         if (socketToServer.Connected)
         {
             byte[] data = Encoding.ASCII.GetBytes(packet);
-            socketToServer.GetStream().Write(data, 0, data.Length);
+            await socketToServer.GetStream().WriteAsync(data, 0, data.Length);
         }
     }
 }

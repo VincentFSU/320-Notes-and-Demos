@@ -94,9 +94,7 @@ class Client {
 
 				this.username = newname;
 				this.sendPacket( Packet.buildNameOkay() );
-
-				// TODO: send LIST packet to all users
-
+                this.server.broadcast(Packet.buildList(this.server.clients));
 				break;
 			case "LIST":							
 				this.sendPacket(Packet.buildList(this.server.clients));
@@ -127,13 +125,15 @@ class Server {
 		console.log("A new client connected from "+socketToClient.localAddress);
 
 		const client = new Client(socketToClient, this);
-		this.clients.push(client);
+        this.clients.push(client);
 		//TODO: broadcast a LIST packet to everyone
+        //this.broadcast(Packet.buildList(this.clients));
 	}
 	onClientDisconnect(client){
 		// remove this client object from the server list:
-		this.clients.splice(this.clients.indexOf(client), 1);
+        this.clients.splice(this.clients.indexOf(client), 1);
 		//TODO: broadcast a LIST packet to everyone
+        //client.sendPacket(Packet.buildList(this.clients));
 	}
 	onError(errMsg){
 		console.log("ERROR: " + errMsg);
