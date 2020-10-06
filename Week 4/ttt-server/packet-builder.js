@@ -19,7 +19,7 @@ exports.PacketBuilder = {
 
         for(let y = 0; y < game.board.length; y++){
             for(let x = 0; x < game.board[y].length; x++){
-                packet.writeUInt8(game.board[y][x]);
+                packet.writeUInt8(game.board[y][x], offset);
                 offset++;
             }
         }

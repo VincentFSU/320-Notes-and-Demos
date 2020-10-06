@@ -115,6 +115,10 @@ public class ControllerGameClient : MonoBehaviour
         print(buffer);
 
         string packetIdentifier = buffer.ReadString(0, 4);
+        if (packetIdentifier.Contains("PDT"))
+        {
+            packetIdentifier = "UPDT";
+        }
 
         switch (packetIdentifier)
         {
