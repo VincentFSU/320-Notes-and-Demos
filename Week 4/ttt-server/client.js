@@ -1,4 +1,4 @@
-
+const PacketBuilder = require("./packet-builder").PacketBuilder;
 
 exports.Client = class Client {
     constructor(socket, server){
@@ -37,16 +37,40 @@ exports.Client = class Client {
                 const desiredUsername = this.buffer.slice(5, 5+lengthOfUsername).toString();
 
                 // check username
+                let responseId = this.server.generateResponseID(desiredUsername, this);
+
+                
+                this.buffer = this.buffer.slice(5 + lengthOfUsername); // consume data out of the buffer
+                
                 console.log("user wants to change name: '"+desiredUsername+"' ");
+                
+                //build and send packet:
+                const packet = PacketBuilder.join(responseId);
+                this.sendPacket(packet);
+
+                const packet2 = PacketBuilder.update(this.server.game);
+                this.sendPacket(packet2);
 
                  break;
             case "CHAT": break;
-            case "PLAY": break;
+            case "PLAY": 
+                if(this.buffer.length < 6) return; // not enough data...
+                const x = this.buffer.readUInt8(4);
+                const y = this.buffer.readUInt8(5);
+
+                console.log("user wants to play at: "+x+","+y);
+
+                this.buffer = this.buffer.slice(6);
+                this.server.game.playMove(this, x, y);
+                break;
             default:
                 console.log("ERROR: Packet identifier NOT recognized("+packetIdentifier+")");
                 this.buffer = Buffer.alloc(0); // wipe the buffer (might cause issues).
                 break;
         }
         // process packets (and consume data from buffer)
+    }
+    sendPacket(packet){
+        this.socket.write(packet);
     }
 };
