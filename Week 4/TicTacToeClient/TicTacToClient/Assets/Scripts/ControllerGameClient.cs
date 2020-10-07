@@ -158,6 +158,8 @@ public class ControllerGameClient : MonoBehaviour
             case "UPDT":
                 if (buffer.Length < 15) return; // not enough data for an UPDT packet
 
+                print(buffer);
+
                 byte whoseTurn = buffer.ReadUInt8(4);
                 byte gameStatus = buffer.ReadUInt8(5);
 

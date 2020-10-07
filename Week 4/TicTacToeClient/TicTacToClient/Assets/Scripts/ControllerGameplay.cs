@@ -72,7 +72,7 @@ public class ControllerGameplay : MonoBehaviour
             int y = i / 3;
 
             boardUI[x,y].SetOwner(b);
-            print(b);
+            //print(b);
         }
     }
 }

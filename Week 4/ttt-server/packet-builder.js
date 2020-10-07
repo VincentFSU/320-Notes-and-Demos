@@ -23,7 +23,7 @@ exports.PacketBuilder = {
                 offset++;
             }
         }
-
+        console.log(packet);
         return packet;
     }    
 };

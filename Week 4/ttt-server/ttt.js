@@ -19,7 +19,7 @@ const Game = {
         if(this.whoseTurn == 1 && client != this.clientX) return;
 
         //ignore move packets from everyone but clientY on clientY's turn:
-        if(this.whoseTurn == 2 && client != this.clientX) return;
+        if(this.whoseTurn == 2 && client != this.clientY) return;
 
         if(x < 0) return; // ignore illegal moves
         if(y < 0) return; // ignore illegal moves

@@ -45,7 +45,13 @@ public class ButtonXO : MonoBehaviour
         if (b == 0)
         {
             textField.text = "";
+        }
+        if (b == 1)
+        {
             textField.text = "X";
+        }
+        if (b == 2)
+        {
             textField.text = "O";
         }
     }
