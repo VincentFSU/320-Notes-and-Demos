@@ -1,0 +1,23 @@
+Game Demo Protocol
+
+Packets from Client
+===================
+
+JOIN - Sent when joining the game, this packet should "register the player".
+
+    O   L   Datatype    Desc
+    ========================
+    0   4   ascii       JOIN
+
+
+Packets form Server
+===================
+
+BALL - The ball's position. Sent 60 times per second (Yikes!).
+
+    O   L   Datatype    Desc
+    ========================
+    0   4   ascii       BALL
+    4   4   float       xPos
+    8   4   float       yPos
+    12  4   flaot       zPos

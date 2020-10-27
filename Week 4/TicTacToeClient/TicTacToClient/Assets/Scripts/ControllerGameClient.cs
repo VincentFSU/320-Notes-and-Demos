@@ -7,6 +7,12 @@ using TMPro;
 using System;
 using System.Threading.Tasks;
 
+public enum Panel
+{
+    Host,
+    Username,
+    Gameplay
+}
 public class ControllerGameClient : MonoBehaviour
 {
     static public ControllerGameClient singleton;
@@ -46,6 +52,21 @@ public class ControllerGameClient : MonoBehaviour
         buff.Concat(new byte[] { 1, 2, 3, 4 }, 0);
         buff.Consume(10);
         print(buff);
+    }
+
+    public void ChangeToPanel(Panel panel)
+    {
+        switch (panel)
+        {
+            case Panel.Host:
+                break;
+            case Panel.Username:
+                break;
+            case Panel.Gameplay:
+                break;
+            default:
+                break;
+        }
     }
 
     public void OnButtonConnect()
