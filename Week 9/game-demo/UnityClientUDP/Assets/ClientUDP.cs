@@ -11,10 +11,17 @@ public class ClientUDP : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+
+        // setup receive loop:
         ListenForPackets();
+
+        // send a packet to the server:
         SendPacket(Buffer.From("Hello world!"));
     }
 
+    /// <summary>
+    /// This function listens for incomping UDP packets
+    /// </summary>
     async void ListenForPackets()
     {
         while (true)
@@ -29,11 +36,15 @@ public class ClientUDP : MonoBehaviour
                 break;
             }
             
-            Buffer packet = Buffer.From(res.Buffer);
+            Buffer packet = Buffer.From("JOIN");
             ProcessPacket(packet);
         }      
     }
 
+    /// <summary>
+    /// This function processes a packet and decides what to do next
+    /// </summary>
+    /// <param name="packet"> The packet to process</param>
     private void ProcessPacket(Buffer packet)
     {
         if (packet.Length < 4) return;
@@ -56,17 +67,18 @@ public class ClientUDP : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// This function sends a packet
+    /// </summary>
+    /// <param name="packet">The packet to send</param>
     async void SendPacket(Buffer packet)
     {
         await sock.SendAsync(packet.bytes, packet.bytes.Length, "127.0.0.1", 320);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
+    /// <summary>
+    /// When destroying, clean up objects:
+    /// </summary>
     private void OnDestroy()
     {
         sock.Close();
