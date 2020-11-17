@@ -4,4 +4,11 @@ exports.NetworkObject = class NetworkObject{
         this.classID = "NWOB";
         this.networkID = ++NetworkObject._idCount;
     }
+
+    serialize(){
+        // TODO: turn object into a byte array
+    }
+    deserialize(){
+        // TODO: turn object into a byte array
+    }
 }

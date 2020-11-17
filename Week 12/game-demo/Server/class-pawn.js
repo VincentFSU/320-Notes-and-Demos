@@ -5,4 +5,10 @@ exports.Pawn = class Pawn extends NetworkObject{
         super();
         this.classID = "PAWN";
     }
+    serialize(){
+        // TODO: turn object into a byte array
+    }
+    deserialize(){
+        // TODO: turn object into a byte array
+    }
 }
