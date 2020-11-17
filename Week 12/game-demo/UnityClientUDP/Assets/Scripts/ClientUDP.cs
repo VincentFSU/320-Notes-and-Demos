@@ -38,6 +38,11 @@ public class ClientUDP : MonoBehaviour
         {
             singleton = this;
 
+            ObjectRegistry.RegisterAll();
+
+            NetworkObject obj = ObjectRegistry.SpawnFrom("PAWN");
+
+            print(obj);
             // set up receive loop (async): 
             ListenForPackets();
 
