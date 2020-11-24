@@ -6,7 +6,9 @@ exports.Pawn = class Pawn extends NetworkObject{
         this.classID = "PAWN";
     }
     serialize(){
-        // TODO: turn object into a byte array
+        const b = super.serialize();
+
+        return b;
     }
     deserialize(){
         // TODO: turn object into a byte array

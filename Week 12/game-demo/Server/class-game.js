@@ -1,3 +1,5 @@
+const Pawn = require("./class-pawn.js").Pawn;
+
 exports.Game = class Game {
     constructor(server){
         this.frame = 0;
@@ -5,14 +7,12 @@ exports.Game = class Game {
         this.dt = 16/1000;
         this.timeUntilNextStatePacket = 0;
 
-        this.ballPos = {
-            x: 0,
-            y: 0,
-            z: 0
-        };
+        this.objs = [];
 
         this.server = server;
         this.update();
+
+        this.spawnObject(new Pawn());
     }
     update(){
         this.time += this.dt;
@@ -20,8 +20,12 @@ exports.Game = class Game {
 
         const player = this.server.getPlayer(0);
 
+        for(var i in this.objs){
+            this.objs[i].update(this);
+        }
+
         if(player){
-            this.ballPos.x += player.input.axisH * 1 * this.dt; // ball moves 1m/s
+        
         }
 
         if (this.timeUntilNextStatePacket > 0)
@@ -31,20 +35,42 @@ exports.Game = class Game {
         else
         {
             this.timeUntilNextStatePacket = .1;
-            this.sendBallPos();
+            this.sendWorldState();
         }
 
-        this.sendBallPos();
+        this.sendWorldState();
 
         setTimeout(()=> this.update(), 16); // wait 16ms and call update again.
     }
-    sendBallPos(){
-        const packet = Buffer.alloc(20);
-        packet.write("BALL", 0);
-        packet.writeUInt32BE(this.frame, 4);
-        packet.writeFloatBE(this.ballPos.x, 8);
-        packet.writeFloatBE(this.ballPos.y, 12);
-        packet.writeFloatBE(this.ballPos.z, 16);
+    sendWorldState(){
+        const packet = this.makeREPL(true);
+        this.server.sendPacketToAll(packet);
+    }
+    makeREPL(isUpdate){
+        isUpdate = !!isUpdate; // force into a boolean
+        let packet = Buffer.alloc(5);
+        packet.write("REPL", 0);
+        packet.writeUInt8(isUpdate ? 2 : 1, 4);
+
+
+        this.objs.forEach(o=>{
+            const classID = Buffer.from(o.classID);
+            const data = o.serialize();
+            packet = Buffer.concat([packet, classID, data]);
+        });
+
+        return packet;
+    }
+    spawnObject(obj){
+        this.objs.push(obj);
+
+        let packet = Buffer.alloc(5);
+        packet.write("REPL", 0);
+        packet.writeUInt8(1, 4);
+
+        const classID = Buffer.from(obj.classID);
+        const data = obj.serialize();
+        packet = Buffer.concat([packet, classID, data]);
         this.server.sendPacketToAll(packet);
     }
 }

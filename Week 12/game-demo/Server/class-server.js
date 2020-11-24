@@ -56,7 +56,9 @@ exports.Server = class Server {
         const client = new Client(rinfo);
         this.clients[key] = client;
         this.showClientList();
-        // TODO: send CREATE replication packets to client for every object...
+
+        const packet = this.game.makeREPL(false);
+        this.sendPacketToClient(packet, client); // TODO: needs ACK!!
 
         return client;
     }

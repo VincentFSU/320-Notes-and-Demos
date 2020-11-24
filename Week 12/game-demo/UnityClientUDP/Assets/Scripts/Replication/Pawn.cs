@@ -11,8 +11,8 @@ public class Pawn : NetworkObject
         // TODO: turn object into a byte array
     }
 
-    public override void Deserialize()
+    public override int Deserialize(Buffer packet)
     {
-        // TODO: turn object into a byte array
+        return base.Deserialize(packet);
     }
 }
