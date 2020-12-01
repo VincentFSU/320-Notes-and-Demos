@@ -40,7 +40,7 @@ public class NetworkObject : MonoBehaviour
     }
     public virtual int Deserialize(Buffer packet)
     {
-        print(packet);
+        //print(packet);
         networkID = packet.ReadUInt8(0);
 
         float px = packet.ReadSingleBE(1);

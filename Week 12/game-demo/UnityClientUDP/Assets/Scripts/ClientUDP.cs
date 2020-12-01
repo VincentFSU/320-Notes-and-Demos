@@ -17,13 +17,14 @@ public class ClientUDP : MonoBehaviour
 
     UdpClient sock = new UdpClient();
 
+    public string Host = "127.0.0.1";
+    public ushort Port = 320;
+
     /// <summary> 
     /// Most recent ball update packet 
     /// that has been received... 
     /// </summary> 
     uint ackBallUpdate = 0;
-
-    public Transform ball;
 
     void Start()
     {
@@ -39,6 +40,10 @@ public class ClientUDP : MonoBehaviour
             singleton = this;
             DontDestroyOnLoad(gameObject);
 
+            IPEndPoint ep = new IPEndPoint(IPAddress.Parse(Host), Port);
+            sock = new UdpClient(ep.AddressFamily);
+            sock.Connect(ep);
+
             //ObjectRegistry.RegisterAll();
 
             // set up receive loop (async): 
@@ -49,6 +54,7 @@ public class ClientUDP : MonoBehaviour
         }
 
     }
+
     /// <summary> 
     /// This function listens for incoming UDP packets. 
     /// </summary> 
@@ -98,17 +104,22 @@ public class ClientUDP : MonoBehaviour
 
         while (offset <= packet.Length)
         {
-            if (packet.Length < offset + 5) return; // do nothing 
-            
-            int networkID = packet.ReadUInt8(offset + 4);
 
+            int networkID = 0;
             switch (replType)
             {
                 case 1: // create:
+                    if (packet.Length < offset + 5) return; // do nothing 
+                    networkID = packet.ReadUInt8(offset + 4);
+
                     print("REPL packet CREATE received");
                     string classID = packet.ReadString(offset, 4);
 
                     NetworkObject obj = ObjectRegistry.SpawnFrom(classID);
+
+                    // check network ID!
+
+                    if (NetworkObject.GetObjectByNetworkID(networkID) != null) return; // ignore if object already exists
 
                     if (obj == null) return;
 
@@ -120,6 +131,9 @@ public class ClientUDP : MonoBehaviour
                     NetworkObject.AddObject(obj); // ERROR: Class ID not found!
                     break;
                 case 2: // update:
+                    if (packet.Length < offset + 5) return; // do nothing 
+                    networkID = packet.ReadUInt8(offset + 4);
+
                     // lookup the object, using networkID
                     NetworkObject obj2 = NetworkObject.GetObjectByNetworkID(networkID);
                     if (obj2 == null) return;
@@ -129,15 +143,18 @@ public class ClientUDP : MonoBehaviour
                     
                     break;
                 case 3: // delete:
+                    if (packet.Length < offset + 1) return; // do nothing 
+                    networkID = packet.ReadUInt8(offset);
+
                     NetworkObject obj3 = NetworkObject.GetObjectByNetworkID(networkID);
                     if (obj3 == null) return;
 
                     NetworkObject.RemoveObject(networkID);
                     Destroy(obj3.gameObject);
+                    offset++;
                     break;
             }
-            print($"packet size: {packet.Length} offset: {offset}");
-            break;
+
         }
     }
 
@@ -148,9 +165,9 @@ public class ClientUDP : MonoBehaviour
     async public void SendPacket(Buffer packet)
     {
         if (sock == null) return;
-
-        // TODO: remove literals from next line: 
-        await sock.SendAsync(packet.bytes, packet.bytes.Length, "127.0.0.1", 320);
+        if (!sock.Client.Connected) return;
+        
+        await sock.SendAsync(packet.bytes, packet.bytes.Length);
     }
     /// <summary> 
     /// When destroying, clean up objects: 
