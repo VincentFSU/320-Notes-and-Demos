@@ -38,7 +38,7 @@ exports.Pawn = class Pawn extends NetworkObject{
         this.position.x += this.velocity.x * game.dt;
     }
     serialize(){
-        const b = super.serialize();
+        let b = super.serialize();
 
         return b;
     }

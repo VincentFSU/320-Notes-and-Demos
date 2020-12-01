@@ -6,6 +6,44 @@ public class Pawn : NetworkObject
 {
     new public static string classID = "PAWN"; // override parent value
 
+    public bool canPlayerControl = false;
+    Vector3 velocity = new Vector3();
+
+    private void FixedUpdate()
+    {
+        if (canPlayerControl)
+        {
+            int moveX = (int)Input.GetAxisRaw("Horizontal");
+            velocity.x = Accelerate(velocity.x, moveX);
+
+            transform.position += new Vector3(velocity.x, 0, 0) * Time.fixedDeltaTime;
+        }
+    }
+
+    float Accelerate(float vel, float acc)
+    {
+        if (acc != 0)
+        {
+            vel += acc * Time.fixedDeltaTime;
+        }
+        else
+        {
+            if (vel > 0)
+            {
+                acc = -1;
+                vel += acc * Time.fixedDeltaTime; // optionally multiply by a scalar;
+                if (vel < 0) vel = 0;
+            }
+            if (vel < 0)
+            {
+                acc = 1;
+                vel += acc * Time.fixedDeltaTime; // optionally multiply by a scalar;
+                if (vel > 0) vel = 0;
+            }
+        }
+        return vel;
+    }
+
     public override void Serialize()
     {
         // TODO: turn object into a byte array

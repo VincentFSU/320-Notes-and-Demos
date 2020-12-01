@@ -8,7 +8,7 @@ exports.Game = class Game {
         Game.Singleton = this;
         this.frame = 0;
         this.time = 0;
-        this.dt = 16/1000;
+        this.dt = .016;
         this.timeUntilNextStatePacket = 0;
 
         this.objs = [];
@@ -40,7 +40,7 @@ exports.Game = class Game {
         else
         {
             this.timeUntilNextStatePacket = .1;
-            this.sendWorldState();
+            //this.sendWorldState();
         }
 
         setTimeout(()=> this.update(), 16); // wait 16ms and call update again.

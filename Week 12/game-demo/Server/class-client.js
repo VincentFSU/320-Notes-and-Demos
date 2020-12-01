@@ -22,6 +22,8 @@ exports.Client = class Client {
 
         this.pawn = new Pawn();
         game.spawnObject(this.pawn);
+
+
     }
     update(){
         const game = Game.Singleton;

@@ -89,6 +89,21 @@ public class ClientUDP : MonoBehaviour
             case "REPL":
                 ProcessPacketREPL(packet);
                 break;
+            case "PAWN":
+                print("PAWN received");
+                if (packet.Length < 5) return;
+
+                byte networkID = packet.ReadUInt8(4);
+                var obj = NetworkObject.GetObjectByNetworkID(networkID);
+                if (obj != null)
+                {
+                    Pawn p = (Pawn)obj;
+
+                    if (p != null) p.canPlayerControl = true;
+                    print(p.canPlayerControl);
+                }
+
+                break;
         }
     }
 
@@ -99,6 +114,8 @@ public class ClientUDP : MonoBehaviour
         int replType = packet.ReadUInt8(4);
 
         if (replType != 1 && replType != 2 && replType != 3) return;
+
+        print($"REPL packet received; type is {replType}");
 
         int offset = 5;
 
@@ -112,14 +129,14 @@ public class ClientUDP : MonoBehaviour
                     if (packet.Length < offset + 5) return; // do nothing 
                     networkID = packet.ReadUInt8(offset + 4);
 
-                    print("REPL packet CREATE received");
+                    //print("REPL packet CREATE received");
                     string classID = packet.ReadString(offset, 4);
 
-                    NetworkObject obj = ObjectRegistry.SpawnFrom(classID);
 
                     // check network ID!
 
                     if (NetworkObject.GetObjectByNetworkID(networkID) != null) return; // ignore if object already exists
+                    NetworkObject obj = ObjectRegistry.SpawnFrom(classID);
 
                     if (obj == null) return;
 
