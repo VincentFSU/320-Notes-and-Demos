@@ -7,7 +7,6 @@ using System;
 
 public class ClientUDP : MonoBehaviour
 {
-
     private static ClientUDP _singleton;
     public static ClientUDP singleton
     {
@@ -15,16 +14,16 @@ public class ClientUDP : MonoBehaviour
         private set { _singleton = value; }
     }
 
-    UdpClient sock = new UdpClient();
+    static UdpClient sockSending = new UdpClient();
+    static UdpClient sockReceiving = new UdpClient(321);
 
-    public string Host = "127.0.0.1";
-    public ushort Port = 320;
+    public List<RemoteServer> availableGameServers = new List<RemoteServer>();
 
     /// <summary> 
     /// Most recent ball update packet 
     /// that has been received... 
     /// </summary> 
-    uint ackBallUpdate = 0;
+    //uint ackBallUpdate = 0;
 
     void Start()
     {
@@ -39,20 +38,25 @@ public class ClientUDP : MonoBehaviour
         {
             singleton = this;
             DontDestroyOnLoad(gameObject);
-
-            IPEndPoint ep = new IPEndPoint(IPAddress.Parse(Host), Port);
-            sock = new UdpClient(ep.AddressFamily);
-            sock.Connect(ep);
-
-            //ObjectRegistry.RegisterAll();
-
-            // set up receive loop (async): 
             ListenForPackets();
-
-            // send a packet to the server (async): 
-            SendPacket(Buffer.From("JOIN"));
         }
 
+    }
+
+    public void ConnectToServer(string host, ushort port)
+    {
+        print($"attempt to connect to {host}:{port}");
+        IPEndPoint ep = new IPEndPoint(IPAddress.Parse(host), port);
+        sockSending = new UdpClient(ep.AddressFamily);
+        sockSending.Connect(ep);
+
+        //ObjectRegistry.RegisterAll();
+
+        // set up receive loop (async): 
+        // ListenForPackets();
+
+        // send a packet to the server (async): 
+        SendPacket(Buffer.From("JOIN"));
     }
 
     /// <summary> 
@@ -60,17 +64,18 @@ public class ClientUDP : MonoBehaviour
     /// </summary> 
     async void ListenForPackets()
     {
+
         while (true)
         {
             UdpReceiveResult res;
             try
             {
-                res = await sock.ReceiveAsync();
-                Buffer packet = Buffer.From(res.Buffer);
-                ProcessPacket(packet);
+                res = await sockReceiving.ReceiveAsync();                
+                ProcessPacket(res);
             }
             catch
             {
+                print("FAILED TO RECEIVE PACKET");
                 break;
             }
         }
@@ -79,8 +84,9 @@ public class ClientUDP : MonoBehaviour
     /// This function processes a packet and decides what to do next. 
     /// </summary> 
     /// <param name="packet">The packet to process</param> 
-    private void ProcessPacket(Buffer packet)
+    private void ProcessPacket(UdpReceiveResult res)
     {
+        Buffer packet = Buffer.From(res.Buffer);
         if (packet.Length < 4) return; // do nothing 
 
         string id = packet.ReadString(0, 4);
@@ -90,7 +96,6 @@ public class ClientUDP : MonoBehaviour
                 ProcessPacketREPL(packet);
                 break;
             case "PAWN":
-                print("PAWN received");
                 if (packet.Length < 5) return;
 
                 byte networkID = packet.ReadUInt8(4);
@@ -100,11 +105,34 @@ public class ClientUDP : MonoBehaviour
                     Pawn p = (Pawn)obj;
 
                     if (p != null) p.canPlayerControl = true;
-                    print(p.canPlayerControl);
                 }
 
                 break;
+            case "HOST":
+                if (packet.Length < 7) return;
+
+                ushort port = packet.ReadUInt16BE(4);
+                int nameLength = packet.ReadUInt8(6);
+
+                if (packet.Length < 7 + nameLength) return;
+
+                string name = packet.ReadString(7, nameLength);
+
+                AddToServerList(new RemoteServer(res.RemoteEndPoint, name));
+
+                break;
         }
+    }
+
+    private void AddToServerList(RemoteServer server)
+    {
+
+        if (!availableGameServers.Contains(server))
+        {
+            availableGameServers.Add(server);
+        }
+
+        //print(availableGameServers.Count);
     }
 
     private void ProcessPacketREPL(Buffer packet)
@@ -115,7 +143,7 @@ public class ClientUDP : MonoBehaviour
 
         if (replType != 1 && replType != 2 && replType != 3) return;
 
-        print($"REPL packet received; type is {replType}");
+        //print($"REPL packet received; type is {replType}");
 
         int offset = 5;
 
@@ -129,9 +157,7 @@ public class ClientUDP : MonoBehaviour
                     if (packet.Length < offset + 5) return; // do nothing 
                     networkID = packet.ReadUInt8(offset + 4);
 
-                    //print("REPL packet CREATE received");
                     string classID = packet.ReadString(offset, 4);
-
 
                     // check network ID!
 
@@ -181,16 +207,17 @@ public class ClientUDP : MonoBehaviour
     /// <param name="packet">The packet to send</param> 
     async public void SendPacket(Buffer packet)
     {
-        if (sock == null) return;
-        if (!sock.Client.Connected) return;
+        if (sockSending == null) return;
+        if (!sockSending.Client.Connected) return;
         
-        await sock.SendAsync(packet.bytes, packet.bytes.Length);
+        await sockSending.SendAsync(packet.bytes, packet.bytes.Length);
     }
     /// <summary> 
     /// When destroying, clean up objects: 
     /// </summary> 
     private void OnDestroy()
     {
-        sock.Close();
+        sockSending.Close();
+        sockReceiving.Close();
     }
 }
